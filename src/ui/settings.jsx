@@ -31,11 +31,12 @@ function Settings(props) {
 	}
 	if (isComponentInstance(props) && !hasImage(props)) {
 		return <ComponentWarning key={props.node.guid} {...props} />;
-	}
+    }
     switch (type) {
         case NodeType.TEXT:
             return <TextSettings key={props.node.guid} {...props} />;
         case NodeType.GROUP:
+        case NodeType.REPEATGRID:
             return <GroupSettings key={props.node.guid} {...props} />;
         case NodeType.WIDGET:
             return <WidgetSettings key={props.node.guid} {...props} />;
@@ -53,6 +54,48 @@ function isComponentInstance(props) {
 
 function hasImage(props) {
 	return props.node.fill && props.node.fill instanceof xd.ImageFill
+}
+
+function getWidgetGeneralSettings(state) {
+    const widgetSettings = [
+        <Label label={"WIDGET RENDERING"} />,
+        <Checkbox
+            name={PropType.IS_NO_LAYOUT}
+            label={"is Rendererd without Layout"}
+            state={state}
+            handleInput={this.handleInput} />,
+        <Checkbox
+            name={PropType.IS_CUSTOM_WIDGET}
+            label={"is Custom Widget"}
+            state={state}
+            handleInput={this.handleInput} />
+    ];
+    if (state[PropType.IS_CUSTOM_WIDGET]) {
+        widgetSettings.push(...[
+            <TextInput
+                    name={PropType.CUSTOM_WIDGET}
+                    placeholder='package:name/WidgetClass.dart'
+                    state={state}
+                    handleInput={this.handleInput} />
+        ])
+    }
+
+    widgetSettings.push(...[
+        <Label label="Slot on parent" />,
+        <TextInput
+                name={PropType.CUSTOM_SLOT}
+                placeholder='children'
+                state={state}
+                handleInput={this.handleInput} />,
+        <Label label="Childrens default slot" />,
+        <TextInput
+                name={PropType.CUSTOM_CHILDREN}
+                placeholder='children'
+                state={state}
+                handleInput={this.handleInput} />
+    ])
+    widgetSettings.push(<span class='separator'/>)
+    return widgetSettings;
 }
 
 class ComponentWarning extends Component {
@@ -108,88 +151,79 @@ class ProjectSettings extends Component {
     }
 
     render(_, state) {
+        const widgetSettings = []
+        widgetSettings.push(...[
+            <Label label={"FLUTTER PROJECT"} />,
+            <div class='project-row'>,
+                <TextInput name={PropType.EXPORT_PATH} placeholder={DefaultPath.ROOT} state={state} handleInput={this.handleInput} readonly />,
+                <button uxp-variant="action" onClick={this.setProjectFolder}><img src={folderIcon.default} alt="icon-folder" /></button>,
+            </div>,
+            <TextInputWithLabel
+                name={PropType.CODE_PATH}
+                label={"CODE PATH"}
+                placeholder={DefaultPath.CODE}
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsCleanPath} />,
+            <TextInputWithLabel
+                name={PropType.IMAGE_PATH}
+                label={"IMAGE PATH"}
+                placeholder={DefaultPath.IMAGE}
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsCleanPath} />,
+            <TextInputWithLabel
+                name={PropType.WIDGET_PREFIX}
+                label={"WIDGET NAME PREFIX"}
+                placeholder=''
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsClassName} />,
+            <span class='separator' />,
+            <label class='label'>SETTINGS</label>,
+            <div class='wrapping-row'>,
+                <Checkbox
+                    name={PropType.ENABLE_PROTOTYPE}
+                    label={"Prototype Interactions"}
+                    state={state}
+                    handleInput={this.handleInput} />,
+                <Checkbox
+                    name={PropType.RESOLUTION_AWARE}
+                    label={"Resolution Aware Images"}
+                    state={state}
+                    handleInput={this.handleInput} />,
+            </div>,
+            <span class='separator' />,
+            <label class='label'>EXPORT ASSETS</label>,
+            <Checkbox
+                name={PropType.EXPORT_COLORS}
+                label={"Colors"}
+                state={state}
+                handleInput={this.handleInput} />,
+            (!state[PropType.EXPORT_COLORS] ? null :
+            <TextInput
+                name={PropType.COLORS_CLASS_NAME}
+                placeholder='XDColors' // TODO: GS: the default value should be moved to a constant somewhere.
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsClassName} />),
+            <Checkbox
+                name={PropType.EXPORT_CHAR_STYLES}
+                label={"Character Styles"}
+                state={state}
+                handleInput={this.handleInput} />,
+            (!state[PropType.EXPORT_CHAR_STYLES] ? null :
+            <TextInput
+					name={PropType.CHAR_STYLES_CLASS_NAME}
+                placeholder='XDTextStyles' // TODO: GS: the default value should be moved to a constant somewhere.
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsClassName} />),
+        ])
+
         return (
             <div class='settings-container'>
-                <Label label={"FLUTTER PROJECT"} />
-                <div class='project-row'>
-                    <TextInput name={PropType.EXPORT_PATH} placeholder={DefaultPath.ROOT} state={state} handleInput={this.handleInput} readonly />
-                    <button uxp-variant="action" onClick={this.setProjectFolder}><img src={folderIcon.default} alt="icon-folder" /></button>
-                </div>
-
-                <TextInputWithLabel
-                    name={PropType.CODE_PATH}
-                    label={"CODE PATH"}
-                    placeholder={DefaultPath.CODE}
-                    state={state}
-                    handleInput={this.handleInput}
-                    onBlur={this.handleBlurAsCleanPath} />
-
-                <TextInputWithLabel
-                    name={PropType.IMAGE_PATH}
-                    label={"IMAGE PATH"}
-                    placeholder={DefaultPath.IMAGE}
-                    state={state}
-                    handleInput={this.handleInput}
-                    onBlur={this.handleBlurAsCleanPath} />
-
-                <TextInputWithLabel
-                    name={PropType.WIDGET_PREFIX}
-					label={"WIDGET NAME PREFIX"}
-					placeholder=''
-                    state={state}
-                    handleInput={this.handleInput}
-                    onBlur={this.handleBlurAsClassName} />
-
-
-                <span class='separator' />
-                <label class='label'>SETTINGS</label>
-
-                <div class='wrapping-row'>
-                    <Checkbox
-                        name={PropType.ENABLE_PROTOTYPE}
-                        label={"Prototype Interactions"}
-                        state={state}
-                        handleInput={this.handleInput} />
-
-                    <Checkbox
-                        name={PropType.RESOLUTION_AWARE}
-                        label={"Resolution Aware Images"}
-                        state={state}
-                        handleInput={this.handleInput} />
-                </div>
-
-                <span class='separator' />
-                <label class='label'>EXPORT ASSETS</label>
-
-				<Checkbox
-					name={PropType.EXPORT_COLORS}
-					label={"Colors"}
-					state={state}
-					handleInput={this.handleInput} />
-				
-				{!state[PropType.EXPORT_COLORS] ? null :
-				<TextInput
-					name={PropType.COLORS_CLASS_NAME}
-					placeholder='XDColors' // TODO: GS: the default value should be moved to a constant somewhere.
-					state={state}
-					handleInput={this.handleInput}
-					onBlur={this.handleBlurAsClassName} />
-				}
-
-				<Checkbox
-					name={PropType.EXPORT_CHAR_STYLES}
-					label={"Character Styles"}
-					state={state}
-					handleInput={this.handleInput} />
-				
-				{!state[PropType.EXPORT_CHAR_STYLES] ? null :
-				<TextInput
-					name={PropType.CHAR_STYLES_CLASS_NAME}
-					placeholder='XDTextStyles' // TODO: GS: the default value should be moved to a constant somewhere.
-					state={state}
-					handleInput={this.handleInput}
-					onBlur={this.handleBlurAsClassName} />
-				}
+                {widgetSettings}
             </div>
         );
     }
@@ -211,28 +245,30 @@ class TextSettings extends Component {
     }
 
     render(_, state) {
+        const widgetSettings = getWidgetGeneralSettings.bind(this)(state)
+        widgetSettings.push(...[
+            <TextInputWithLabel
+                name={PropType.FLUTTER_FONT}
+                label={"FLUTTER FONT"}
+                placeholder={this.props.node.fontFamily}
+                state={state}
+                handleInput={this.handleInput} />,
+            <TextInputWithLabel
+                name={PropType.TEXT_PARAM_NAME}
+                label={"TEXT PARAMETER"}
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsClassName} />,
+            <TextInputWithLabel
+                name={PropType.COLOR_PARAM_NAME}
+                label={"COLOR PARAMETER"}
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsClassName} />
+        ])
         return (
             <div class='settings-container'>
-                <TextInputWithLabel
-                    name={PropType.FLUTTER_FONT}
-                    label={"FLUTTER FONT"}
-                    placeholder={this.props.node.fontFamily}
-                    state={state}
-                    handleInput={this.handleInput} />
-
-                <TextInputWithLabel
-                    name={PropType.TEXT_PARAM_NAME}
-                    label={"TEXT PARAMETER"}
-                    state={state}
-                    handleInput={this.handleInput}
-                    onBlur={this.handleBlurAsClassName} />
-
-                <TextInputWithLabel
-                    name={PropType.COLOR_PARAM_NAME}
-                    label={"COLOR PARAMETER"}
-                    state={state}
-                    handleInput={this.handleInput}
-                    onBlur={this.handleBlurAsClassName} />
+                {widgetSettings}
             </div>
         );
     }
@@ -252,28 +288,41 @@ class WidgetSettings extends Component {
 
     render(_, state) {
 		let isComponent = this.props.node instanceof xd.SymbolInstance;
+        const widgetSettings = getWidgetGeneralSettings.bind(this)(state)
+
+        widgetSettings.push(...[
+            <Label label={"Parent Class"} />,
+            <TextInput
+                    name={PropType.CUSTOM_EXTENDS}
+                    placeholder='StatelessWidget'
+                    state={state}
+                    handleInput={this.handleInput} />,
+            <span class='separator'/>
+        ])
+
+        widgetSettings.push(...[
+            <Checkbox
+                name={PropType.INCLUDE_IN_EXPORT_PROJECT}
+                label={"Include in Export All Widgets"}
+                state={state}
+                handleInput={this.handleInput} />,
+            <TextInputWithLabel
+                name={PropType.WIDGET_NAME}
+                label={"WIDGET NAME"}
+                placeholder={NodeUtils.getDefaultWidgetName(this.props.node)}
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsClassName} />,
+            (isComponent && <TextInputWithLabel
+                name={PropType.TAP_CALLBACK_NAME}
+                label={"TAP CALLBACK NAME"}
+                state={state}
+                handleInput={this.handleInput}
+                onBlur={this.handleBlurAsClassName} />)
+        ])
         return (
             <div class='settings-container'>
-                <Checkbox
-                    name={PropType.INCLUDE_IN_EXPORT_PROJECT}
-                    label={"Include in Export All Widgets"}
-                    state={state}
-                    handleInput={this.handleInput} />
-
-                <TextInputWithLabel
-                    name={PropType.WIDGET_NAME}
-					label={"WIDGET NAME"}
-					placeholder={NodeUtils.getDefaultWidgetName(this.props.node)}
-                    state={state}
-                    handleInput={this.handleInput}
-                    onBlur={this.handleBlurAsClassName} />
-
-                {isComponent && <TextInputWithLabel
-                    name={PropType.TAP_CALLBACK_NAME}
-                    label={"TAP CALLBACK NAME"}
-                    state={state}
-                    handleInput={this.handleInput}
-                    onBlur={this.handleBlurAsClassName} />}
+                {widgetSettings}
             </div>
         );
     }
@@ -296,26 +345,36 @@ class ShapeSettings extends Component {
     }
 
     render(_, state) {
-        return (!hasImage(this.props) ? null :
-            <div class='settings-container'>
-				
-				<TextInputWithLabel
-					name={PropType.IMAGE_FILL_NAME}
-					label={"IMAGE EXPORT NAME"}
-					state={state}
-					handleInput={this.handleInput} />
-				{isComponentInstance(this.props) ?
-					getWarning(this.props, true)
-					:
-					<TextInputWithLabel
-						name={PropType.IMAGE_PARAM_NAME}
-						label={"IMAGE PARAMETER"}
-						state={state}
-						handleInput={this.handleInput}
-						onBlur={this.handleBlurAsClassName} />
-				}
-			</div>
-        );
+        const widgetSettings = getWidgetGeneralSettings.bind(this)(state)
+        widgetSettings.push(...[
+            <Checkbox
+                name={PropType.DECORATE_ONLY}
+                label={"Export decorations only"}
+                state={state}
+                handleInput={this.handleInput} />,
+            <span class='separator'/>
+        ])
+        const imageSettings = (!hasImage(this.props) ? null : [
+            <TextInputWithLabel
+                name={PropType.IMAGE_FILL_NAME}
+                label={"IMAGE EXPORT NAME"}
+                state={state}
+                handleInput={this.handleInput} />,
+            isComponentInstance(this.props) ?
+                getWarning(this.props, true)
+                :
+                <TextInputWithLabel
+                    name={PropType.IMAGE_PARAM_NAME}
+                    label={"IMAGE PARAMETER"}
+                    state={state}
+                    handleInput={this.handleInput}
+                    onBlur={this.handleBlurAsClassName} />
+        ]);
+        if (imageSettings) {
+            widgetSettings.push(...imageSettings)
+        }
+
+        return (<div class='settings-container'>{widgetSettings}</div>)
     }
 }
 
@@ -332,21 +391,23 @@ class GroupSettings extends Component {
     }
 
     render(_, state) {
-        return (
-            <div class='settings-container'>
-
-				<Checkbox
+        const widgetSettings = getWidgetGeneralSettings.bind(this)(state)
+        widgetSettings.push(...[
+            <Checkbox
 					name={PropType.COMBINE_SHAPES}
 					label={"Combine Shapes"}
 					state={state}
-					handleInput={this.handleInput} />
-
+					handleInput={this.handleInput} />,
                 <TextInputWithLabel
                     name={PropType.TAP_CALLBACK_NAME}
                     label={"TAP CALLBACK NAME"}
                     state={state}
                     handleInput={this.handleInput}
                     onBlur={this.handleBlurAsClassName} />
+        ])
+        return (
+            <div class='settings-container'>
+                {widgetSettings}
             </div>
         );
     }

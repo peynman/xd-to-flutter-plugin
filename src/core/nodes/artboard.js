@@ -13,6 +13,7 @@ const xd = require("scenegraph");
 
 const { AbstractWidget } = require("./abstractwidget");
 const { getColor } = require("../../utils/exportutils");
+const PropType = require("../proptype");
 
 class Artboard extends AbstractWidget {
 	static create(xdNode, ctx) { throw("Artboard.create() called."); }
@@ -32,7 +33,30 @@ class Artboard extends AbstractWidget {
 	}
 
 	_serializeWidgetBody(ctx) {
-		return `Scaffold(${this._getBackgroundColorParam(ctx)}body: ${this._getChildStack(ctx)}, )`;
+		let name = 'Scaffold'
+		const state = this.xdNode.pluginData;
+		if (state && state[PropType.IS_CUSTOM_WIDGET] && state[PropType.CUSTOM_WIDGET]) {
+			const widgetName = state[PropType.CUSTOM_WIDGET];
+			if (widgetName.startsWith('package')) {
+				const filename = widgetName.substr(widgetName.lastIndexOf('/') + 1);
+				name = filename.substr(0, filename.length - 5)
+			} else {
+				name = widgetName;
+			}
+		}
+
+		const children = this._getChildStack(ctx, true)
+		const body = children.length > 0 ? `body: ${children}, ` : ''
+		
+		let slots = this._getChildSlots(ctx).map(slot => {
+			return slot + ': ' + this._getChildSlot(ctx, slot)
+		}).join(',')
+
+		if (state && state[PropType.CUSTOM_EXTENDS]) {
+			return `${['Drawer'].indexOf(state[PropType.CUSTOM_EXTENDS]) === -1 ? this._getBackgroundColorParam(ctx): ''} ${body} ${slots}`;
+		} else {
+			return `${name}(${this._getBackgroundColorParam(ctx)} ${body} ${slots})`;
+		}
 	}
 
 	_getBackgroundColorParam(ctx) {

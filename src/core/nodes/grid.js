@@ -76,18 +76,32 @@ class Grid extends AbstractNode {
 
 		// TODO: GS: when .responsive is false, we likely have to wrap this in a SizedBox
 
+		const state = this.xdNode.pluginData
+		let name = 'SingleChildScrollView'
+		if (state && state[PropType.IS_CUSTOM_WIDGET] && state[PropType.CUSTOM_WIDGET]) {
+			name = state[PropType.CUSTOM_WIDGET]
+		}
+		let children = 'children'
+		if (state && state[PropType.CUSTOM_CHILDREN]) {
+			children = state[PropType.CUSTOM_CHILDREN]
+		}
+
+		if (state && state[PropType.IS_NO_LAYOUT]) {
+			return `...[${childDataStr}].map((map) { ${paramVarStr} return ${itemStr}; }).toList()`
+		}
+
 		if (!itemIsResponsive) {
-			return `SingleChildScrollView(child: Wrap(` +
+			return `${name}(child: Wrap(` +
 				'alignment: WrapAlignment.center, ' +
 				`spacing: ${xSpacing}, runSpacing: ${ySpacing}, ` +
-				`children: [${childDataStr}].map((map) { ${paramVarStr} return ${itemStr}; }).toList(),` +
+				`${children}: [${childDataStr}].map((map) { ${paramVarStr} return ${itemStr}; }).toList(),` +
 			'), )';
 		}
 		return `GridView.count(` +
 			`mainAxisSpacing: ${ySpacing}, crossAxisSpacing: ${xSpacing}, ` +
 			`crossAxisCount: ${colCount}, ` +
 			`childAspectRatio: ${aspectRatio}, ` +
-			`children: [${childDataStr}].map((map) { ${paramVarStr} return ${itemStr}; }).toList(),` +
+			`${children}: [${childDataStr}].map((map) { ${paramVarStr} return ${itemStr}; }).toList(),` +
 		')';
 	}
 

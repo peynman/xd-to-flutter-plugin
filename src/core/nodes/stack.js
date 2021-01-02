@@ -40,6 +40,11 @@ class Stack extends AbstractNode {
 
 		let str = this._getChildStack(ctx);
 
+		const state = xdNode.pluginData
+		if (state && state[PropType.IS_NO_LAYOUT]) {
+			return str
+		}
+
 		if (!this.responsive) { str = this._addSizedBox(str, xdNode.localBounds, ctx); }
 
 		return str;

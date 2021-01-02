@@ -22,6 +22,10 @@ const { ParamType } = require("../parameter");
 // Represents an Ellipse or Rectangle that can be exported as a decorated Container
 class Container extends AbstractNode {
 	static create(xdNode, ctx) {
+		const state = xdNode.pluginData;
+		if (state && state[PropType.IS_CUSTOM_WIDGET] && state[PropType.CUSTOM_WIDGET] && state[PropType.CUSTOM_WIDGET].startsWith('package:')) {
+			ctx.addImport(state[PropType.CUSTOM_WIDGET])
+		}
 		if (xdNode instanceof xd.Rectangle || xdNode instanceof xd.Ellipse) {
 			if (xdNode.fillEnabled && xdNode.fill instanceof xd.RadialGradient) {
 				ctx.addImport("package:adobe_xd/gradient_xd_transform.dart");
@@ -44,6 +48,21 @@ class Container extends AbstractNode {
 	}
 
 	_serialize(ctx) {
+		const state = this.xdNode.pluginData;
+		if (state && state[PropType.IS_CUSTOM_WIDGET] && state[PropType.CUSTOM_WIDGET]) {
+			const widgetName = state[PropType.CUSTOM_WIDGET];
+			if (widgetName.startsWith('package')) {
+				const filename = widgetName.substr(widgetName.lastIndexOf('/') + 1);
+				const name = filename.substr(0, filename.length - 5)
+				return `${name}()`;
+			} else {
+				return `${widgetName}()`;
+			}
+		}
+		if (state && state[PropType.DECORATE_ONLY]) {
+			return this._getBoxDecoration(ctx);
+		}
+
 		return `Container(${this._getSizeParams(ctx)}${this._getColorOrDecorationParam(ctx)})`;
 	}
 

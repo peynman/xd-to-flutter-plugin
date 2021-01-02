@@ -10,6 +10,7 @@ written permission of Adobe.
 */
 
 const xd = require("scenegraph");
+const PropType = require("../proptype");
 
 const $ = require("../../utils/utils");
 const { AbstractDecorator } = require("./abstractdecorator");
@@ -25,7 +26,13 @@ class Layout extends AbstractDecorator {
 	_serialize(nodeStr, ctx) {
 		let node = this.node;
 		if (!node.layout) { return nodeStr; }
+		const state = node.xdNode.pluginData;
+		if (state && state[PropType.IS_NO_LAYOUT]) {
+			return nodeStr
+		}
+
 		nodeStr = this._transform(nodeStr, ctx);
+
 		return (node.responsive) ? this._pin(nodeStr, ctx) : this._translate(nodeStr, ctx);
 	}
 

@@ -13,6 +13,7 @@ const NodeUtils = require("../../utils/nodeutils");
 
 const { AbstractNode } = require("./abstractnode");
 const { ContextTarget } = require("../context");
+const PropType = require("../proptype");
 
 // Abstract class representing the minimum interface required for an export node.
 class AbstractWidget extends AbstractNode {
@@ -51,11 +52,18 @@ class AbstractWidget extends AbstractNode {
 		let importStr = this._getImportListString(ctx);
 		let shapeDataStr = this._getShapeDataProps(ctx);
 
+		const state = this.xdNode.pluginData
+		let parent = 'StatelessWidget';
+
+		if (state && state[PropType.CUSTOM_EXTENDS]) {
+			parent = state[PropType.CUSTOM_EXTENDS]
+		}
+
 		return importStr + "\n" +
-			`class ${this.widgetName} extends StatelessWidget {\n` +
+			`class ${this.widgetName} extends ${parent} {\n` +
 				propStr +
-				`${this.widgetName}({ Key key, ${paramStr}}) : super(key: key);\n` +
-				`@override\nWidget build(BuildContext context) { return ${bodyStr}; }` +
+				`${this.widgetName}({ Key key, ${paramStr}}) : super(key: key, ${parent === 'StatelessWidget' ? '': bodyStr});\n` +
+				(parent === 'StatelessWidget' ? `@override\nWidget build(BuildContext context) { return ${bodyStr}; }` : ``)+
 			"}\n" +
 			shapeDataStr;
 	}

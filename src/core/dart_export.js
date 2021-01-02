@@ -215,6 +215,7 @@ function _formatDart(str, nestInFunct, ctx, node) {
 		result = formatDart(str, nestInFunct);
 	} catch(e) {
 		trace(e);
+		ctx.log.error(str);
 		ctx.log.error('Unable to format the exported source code.', xdNode);
 	}
 	return result;

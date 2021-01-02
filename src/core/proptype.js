@@ -42,5 +42,12 @@ module.exports = Object.freeze({
 
 	// Shared
 	FLATTEN_TO_IMAGE: "flattenToImage",
+	IS_CUSTOM_WIDGET: "isCustomWidget",
+	CUSTOM_WIDGET: "customWidget",
+	CUSTOM_SLOT: "customSlot",
+	CUSTOM_EXTENDS: "customExtends",
+	IS_NO_LAYOUT: "withoutLayout",
+	CUSTOM_CHILDREN: "customChildrenSlot",
+	DECORATE_ONLY: "decorationOnly",
 });
 
